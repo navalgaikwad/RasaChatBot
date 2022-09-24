@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>PLDT ChatBot Demo</title>
+<script
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<style language="text/css">
+/* options style */
+.option {
+	background-color: #eeeecc;
+	border: solid 2px #ccc;
+	border-radius: 10px;
+	margin: 4px;
+	padding: 2px 6px;
+	display: inline-block;;
+	cursor: pointer;
+}
+
+p.options {
+	margin: 4px;
+	padding: 4px 10px 4px 10px;
+	border-radius: 4px;
+	text-align: left;
+	min-width: 48%;
+	max-width: 85%;
+	float: left;
+	background-color: #C6DBFF;
+	font-style: italic;
+}
+/* options style */
+body {
+	background-color: #eee
+}
+
+.chat-btn {
+	position: absolute;
+	right: 14px;
+	bottom: 30px;
+	cursor: pointer
+}
+
+.chat-btn .close {
+	display: none
+}
+
+.chat-btn i {
+	transition: all 0.9s ease
+}
+
+#check:checked ~.chat-btn i {
+	display: block;
+	pointer-events: auto;
+	transform: rotate(180deg)
+}
+
+#check:checked ~.chat-btn .comment {
+	display: none
+}
+
+.chat-btn i {
+	font-size: 22px;
+	color: #fff !important
+}
+
+.chat-btn {
+	width: 50px;
+	height: 50px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 50px;
+	background-color: gray;
+	color: orange;
+	font-size: 22px;
+	border: none
+}
+
+.wrapper {
+	position: absolute;
+	right: 20px;
+	bottom: 100px;
+	width: 300px;
+	background-color: #fff;
+	border-radius: 5px;
+	opacity: 0;
+	transition: all 0.4s
+}
+
+#check:checked ~.wrapper {
+	opacity: 1
+}
+
+.header {
+	padding: 13px;
+	background-color: navy;
+	border-radius: 5px 5px 0px 0px;
+	margin-bottom: 10px;
+	color: #fff
+}
+
+.chat-form {
+	padding: 15px
+}
+
+.chat-form input, textarea, button {
+	margin-bottom: 10px
+}
+
+.chat-form textarea {
+	resize: vertical;
+}
+
+.form-control:focus, .btn:focus {
+	box-shadow: none
+}
+
+.btn, .btn:focus, .btn:hover {
+	background-color: blue;
+	border: blue
+}
+
+#check {
+	display: none !important
+}
+
+.header img {
+	float: left;
+	height: 50px;
+	background: #555;
+}
+
+.header h2 {
+	position: relative;
+	left: 5px;
+}
+
+input#wisdom {
+	padding: 4px;
+	font-size: 1em;
+	width: 400px
+}
+
+input::placeholder {
+	color: #ccc;
+	font-style: italic;
+}
+
+p.userRequest {
+	margin: 4px;
+	padding: 4px 10px 4px 10px;
+	border-radius: 4px;
+	text-align: right;
+	min-width: 48%;
+	max-width: 85%;
+	float: right;
+	background-color: #7d7;
+}
+
+p.lexResponse {
+	margin: 4px;
+	padding: 4px 10px 4px 10px;
+	border-radius: 4px;
+	text-align: left;
+	min-width: 48%;
+	max-width: 85%;
+	float: left;
+	background-color: #C6DBFF;
+	font-style: italic;
+}
+
+p.lexError {
+	margin: 4px;
+	padding: 4px 10px 4px 10px;
+	border-radius: 4px;
+	text-align: right;
+	min-width: 50%;
+	max-width: 85%;
+	float: right;
+	background-color: #f77;
+}
+/********************response card********************************/
+.card {
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+	transition: 0.3s;
+	width: 40%;
+	border-radius: 5px;
+}
+
+.card:hover {
+	box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* img {
+  border-radius: 5px 5px 0 0;
+} */
+.container {
+	padding: 2px 16px;
+}
+/****************************************************/
+</style>
+</head>
+
+<body>
+	<h1 style="text-align: center;">Bizload Demo</h1>
+	<input type="checkbox" id="check" onchange="onChatCheck()">
+	<label class="chat-btn" for="check"> <i
+		class="fa fa-commenting-o comment"></i> <i class="fa fa-close close"></i>
+	</label>
+	<div class="wrapper" style="max-height: 500px; width: 450px;">
+		<div class="header" style="max-height: 50px">
+			<img alt="logo" src="C:\asd\SmrtPLDTlogo.png"
+				style="max-height: 50px;">
+			<h2>Biz-B</h2>
+		</div>
+		<div class="chat-form">
+			<div id="conversation"
+				style="min-height: 100px; max-height: 330px; border: 1px solid #ccc; background-color: #eee; padding: 4px; overflow: scroll">
+			</div>
+			<form id="chatform" onsubmit="return pushChat();"
+				style="height: 50px;">
+				<input type="text" id="wisdom" value="" placeholder="Biz-B"
+					style="width: 200px;">
+			</form>
+		</div>
+	</div>
+	<script type="text/javascript">
+		// set the focus to the input box
+		document.getElementById("wisdom").focus();
+
+		// Initialize the Amazon Cognito credentials provider
+		/* AWS.config.region = 'us-east-1'; // Region
+		AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+			// Provide your Pool Id here
+			IdentityPoolId : 'us-east-1:abb3e186-ef3a-4397-9468-1033b612ff1f',
+		});
+
+		var lexruntime = new AWS.LexRuntime();
+		var lexUserId = 'chatbot-vbhv' + Date.now();*/
+		var sessionAttributes = 'rasa_' + Date.now();
+		var flag = '';
+
+		function pushChat() {
+
+			// if there is text to be sent...
+			var wisdomText = document.getElementById('wisdom');
+			if (wisdomText && wisdomText.value
+					&& wisdomText.value.trim().length > 0) {
+
+				// disable input to show we're sending it
+				var wisdom = wisdomText.value.trim();
+				wisdomText.value = "...";
+				//wisdomText.locked = true;
+
+				// send it to the Lex runtime
+				var params = {
+					message : wisdom,
+					sender : sessionAttributes,
+					flag : flag
+				};
+				flag='';
+				showRequest(wisdom);
+
+				//
+				$
+						.ajax({
+							url : "http://localhost:9090/hit",
+							method : "POST",
+							data : JSON.stringify(params),
+							contentType : "application/json",
+							success : function(data) {
+								//console.log(data);
+								var arrayLength = data.length;
+								if (arrayLength > 0) {
+									// capture the sessionAttributes for the next cycle
+									sessionAttributes = data[0].recipient_id;
+									flag = data[0].flag;
+									var divText = '<div id="options" class="options">';
+									for (var i = 0; i < arrayLength; i++) {
+										var str = '';
+										var url = '';
+
+										// show response and/or error/dialog status
+										if (data[i].image != null) {
+											//console.log(data[i].image);//.replaceAll("\\/", "\\")
+											url = "\n"
+													+ data[i].image.replaceAll(
+															"\\/", "\\");
+											//showImgInResponse(url);
+											divText += '<img src="'
+													+ url
+													+ '" style="width: 200px; height: 200px;"';
+										}
+
+										if (data[i].text != null) {
+											str += "\n" + data[i].text;
+											//divText+='<P >'+data[i].text+'</P>';
+											showResponse(str);
+										}
+
+										if (data[i].buttons != null) {
+
+											var bLen = data[i].buttons.length;
+
+											for (var j = 0; j < bLen; j++) {
+												//console.log(data[i].buttons[j].title);
+												//createButton(data[i].buttons[j].title);
+												//divText+='<div class="option" onClick=\"pushChat2('+data[i].buttons[j].title+');\">'+data[i].buttons[j].title+'</div>';
+												divText += '<a onclick="submitOption(this)" data-option="'
+														+ data[i].buttons[j].title
+														+ '" class="option" >'
+														+ data[i].buttons[j].title
+														+ '</a>';
+
+											}
+
+										}
+
+										/* if(url!=''){	
+											//showResponse(str);
+											showImgInResponse(url);
+										}else{
+											showResponse(str);
+										} */
+									}
+
+									if (!inText) {
+										divText += '</div>';
+
+									}
+									createDiv(divText.trim());
+									console.log(divText);
+								}
+							}
+						});
+				// re-enable input
+				wisdomText.value = '';
+				//wisdomText.locked = false;
+
+				/* lexruntime.postText(params, function(err, data) {
+					if (err) {
+						console.log(err, err.stack);
+						showError('Error:  ' + err.message
+								+ ' (see console for details)')
+					}
+					if (data) {
+						// capture the sessionAttributes for the next cycle
+						sessionAttributes = data.sessionAttributes;
+						// show response and/or error/dialog status
+						showResponse(data);
+					}
+					// re-enable input
+					wisdomText.value = '';
+					wisdomText.locked = false;
+				}); */
+			}
+			// we always cancel form submission
+			return false;
+		}
+
+		function pushChat2(wisdom) {
+
+			// if there is text to be sent...
+
+			if (wisdom && wisdom.trim().length > 0) {
+
+				// disable input to show we're sending it
+				//var wisdom = wisdomText.value.trim();
+				//wisdomText.value = "...";
+				//wisdomText.locked = true;
+
+				// send it to the Lex runtime
+				var params = {
+					message : wisdom,
+					sender : sessionAttributes,
+					flag : flag
+				};
+				flag='';
+				showRequest(wisdom);
+
+				$
+						.ajax({
+							url : "http://localhost:9090/hit",
+							method : "POST",
+							data : JSON.stringify(params),
+							contentType : "application/json",
+							success : function(data) {
+								//console.log(data);
+								var arrayLength = data.length;
+								if (arrayLength > 0) {
+									// capture the sessionAttributes for the next cycle
+									sessionAttributes = data[0].recipient_id;
+									flag = data[0].flag;
+									var divText = '<div id="options class="options">';
+									var inText = false;
+									for (var i = 0; i < arrayLength; i++) {
+										var str = '';
+										var url = '';
+
+										// show response and/or error/dialog status
+										if (data[i].image != null) {
+											//console.log(data[i].image);//.replaceAll("\\/", "\\")
+											url = "\n"
+													+ data[i].image.replaceAll(
+															"\\/", "\\");
+											divText += '<img src="'
+													+ url
+													+ '" style="width: 200px; height: 200px;"';
+										}
+
+										if (data[i].text != null) {
+											str += "\n" + data[i].text;
+											//divText+='<P>'+data[i].text+'</P>';
+											inText = true;
+											divText = '';
+											showResponse(str);
+										}
+
+										if (data[i].buttons != null) {
+
+											var bLen = data[i].buttons.length;
+
+											for (var j = 0; j < bLen; j++) {
+												//console.log(data[i].buttons[j].title);
+												//createButton(data[i].buttons[j].title);
+												//divText+='<div class="option" onClick=\"pushChat2('+data[i].buttons[j].title+');\">'+data[i].buttons[j].title+'</div>';
+												divText += '<a onclick="submitOption(this)" data-option="'
+														+ data[i].buttons[j].title
+														+ '" class="option" >'
+														+ data[i].buttons[j].title
+														+ '</a>';
+
+											}
+
+										}
+
+										/* if(url!=''){	
+											//showResponse(str);
+											showImgInResponse(url);
+										}else{
+											showResponse(str);
+										} */
+									}
+									if (!inText) {
+										divText += '</div>';
+
+									}
+									createDiv(divText.trim());
+									console.log(divText);
+
+								}
+							}
+						});
+				// re-enable input
+				//wisdomText.value = '';
+				//wisdomText.locked = false;
+
+				/* lexruntime.postText(params, function(err, data) {
+					if (err) {
+						console.log(err, err.stack);
+						showError('Error:  ' + err.message
+								+ ' (see console for details)')
+					}
+					if (data) {
+						// capture the sessionAttributes for the next cycle
+						sessionAttributes = data.sessionAttributes;
+						// show response and/or error/dialog status
+						showResponse(data);
+					}
+					// re-enable input
+					wisdomText.value = '';
+					wisdomText.locked = false;
+				}); */
+			}
+			// we always cancel form submission
+			return false;
+		}
+
+		function getInitMenu() {
+			pushChat2("menu");
+			/* $.ajax({
+			   url: "http://localhost:9090/init-menu/"+sessionAttributes,
+			   method: "GET",
+			   //data: JSON.stringify(params),
+			   contentType: "application/json",
+			   success: function (data) {
+			       console.log(data);
+			       var arrayLength=data.length;
+			       if (arrayLength>0) {
+			       	// capture the sessionAttributes for the next cycle
+					//sessionAttributes = data[0].recipient_id;
+					
+					for (var i = 0; i < arrayLength; i++) {
+						var str = '';
+						var url = '';
+						// show response and/or error/dialog status
+						if(data[i]!=null)
+							str+="\n"+data[i];
+						  
+						if(str!=''){
+							createButton(str);
+						}
+					}
+				}
+			   }
+			});  */
+		}
+
+		function submitOption(el) {
+			var option = el.dataset.option;
+			//alert(option);
+			//$("#options").remove();
+			$("p").remove(".options");
+			pushChat2(option)
+		}
+
+		function createDiv(divText) {
+			if (divText != ""
+					|| divText != '<div id="options" class="options"></div>') {
+				var conversationDiv = document.getElementById('conversation');
+				var responsePara = document.createElement("P");
+				responsePara.className = 'options';
+				var div = document.createElement("div");
+				div.innerHTML = divText;
+				responsePara.appendChild(div);
+				conversationDiv.appendChild(responsePara);
+				conversationDiv.scrollTop = conversationDiv.scrollHeight;
+			}
+		}
+
+		function createButton(str) {
+			var conversationDiv = document.getElementById('conversation');
+			var responsePara = document.createElement("P");
+			responsePara.className = 'lexResponse';
+			var btn = document.createElement("BUTTON");
+			btn.innerHTML = str;
+			btn.onclick = function() {
+				pushChat2(str)
+			};
+			responsePara.appendChild(btn);
+			//str.link(pushChat2(str));
+			//responsePara.appendChild(document.createTextNode(str));
+			conversationDiv.appendChild(responsePara);
+			conversationDiv.scrollTop = conversationDiv.scrollHeight;
+		}
+
+		function showRequest(daText) {
+
+			var conversationDiv = document.getElementById('conversation');
+			var requestPara = document.createElement("P");
+			requestPara.className = 'userRequest';
+			requestPara.appendChild(document.createTextNode(daText));
+			conversationDiv.appendChild(requestPara);
+			conversationDiv.scrollTop = conversationDiv.scrollHeight;
+		}
+
+		function showError(daText) {
+
+			var conversationDiv = document.getElementById('conversation');
+			var errorPara = document.createElement("P");
+			errorPara.className = 'lexError';
+			errorPara.appendChild(document.createTextNode(daText));
+			conversationDiv.appendChild(errorPara);
+			conversationDiv.scrollTop = conversationDiv.scrollHeight;
+		}
+
+		function showImgInResponse(url) {
+			var conversationDiv = document.getElementById('conversation');
+			var responsePara = document.createElement("P");
+			responsePara.className = 'options';
+			var img = document.createElement('img');
+			img.src = url;
+			img.style.width = '200px';
+			img.style.height = '200px';
+			responsePara.appendChild(img);
+			conversationDiv.appendChild(responsePara);
+			conversationDiv.scrollTop = conversationDiv.scrollHeight;
+		}
+
+		function showResponse(lexResponse) {
+
+			var conversationDiv = document.getElementById('conversation');
+			var responsePara = document.createElement("P");
+			responsePara.className = 'lexResponse';
+			if (lexResponse) {
+				responsePara.appendChild(document.createTextNode(lexResponse));
+				responsePara.appendChild(document.createElement('br'));
+			}
+
+			conversationDiv.appendChild(responsePara);
+			conversationDiv.scrollTop = conversationDiv.scrollHeight;
+		}
+
+		function onChatCheck() {
+			var decider = document.getElementById('check');
+			if (decider.checked) {
+				clearBox('wisdom');
+				getInitMenu();
+				sessionAttributes = 'Rasa_' + Date.now();
+
+			} else {
+				clearBox('wisdom');
+				clearBox('conversation');
+			}
+		}
+		function clearBox(elementID) {
+			document.getElementById(elementID).innerHTML = "";
+		}
+	</script>
+</body>
+
+</html>

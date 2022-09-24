@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="./assets/css/chat.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./assets/css/typing.css">
+    <title>Chatbox</title>
+</head>
+<body style=" background-image: url('./images/Background.PNG'); background-repeat: no-repeat; background-size: 1300px 620px;">
+    <div class="container">
+        <div class="chatbox">
+            <div class="chatbox__support">
+                <div class="chatbox__header">
+                    <div class="chatbox__image--header">
+                        <img src="./images/SmrtPLDTlogo.png" alt="image" height="50px" width="50px" style="border-radius: 50%;">
+                    </div>
+                    <div class="chatbox__content--header">
+                        <h4 class="chatbox__heading--header">Bizload Chat support</h4>
+                        <p class="chatbox__description--header">Welcome To Bizb. Here to assist you for the general queries on bizb application</p>
+                    </div>
+                </div>
+                <div class="chatbox__messages" id="conversation">
+                    <div>    
+                    </div>
+                </div>
+                <div class="chatbox__footer">
+                    <form id="chatform" onsubmit="return pushChat();"
+				style="height: 50px;">
+                    <input type="text" id="wisdom" placeholder="" disabled>
+                    <div class="submit_text">
+                    <input type="submit" value="Send" style="float: right;">
+                    </div>
+                    </form>
+                </div>
+            </div>
+            <div class="chatbox__button" >
+                <button class="pulse" onclick="onChatCheck()">button</button>
+            </div>
+        </div>
+    </div>
+    <script	src="./assets/js/jquery-1.11.3.min.js"></script>
+    <script src="./assets/js/Chat.js"></script>
+    <script src="./assets/js/bizb.js"></script>
+    <script src="./app.js"></script>
+
+</body>
+</html>
